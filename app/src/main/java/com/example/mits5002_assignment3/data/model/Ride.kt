@@ -1,5 +1,13 @@
 package com.example.mits5002_assignment3.data.model
 
+import android.content.Context
+import android.widget.Toast
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
+
 /**
  * A class representing the whole ride with VIT Ride app
  */
@@ -22,7 +30,8 @@ class Ride(private val rideId: Int, private val userId: Int, private val driverI
         pickUpLocation: String,
         dropOffLocation: String,
         paymentAmount: Int,
-        rideType: String
+        rideType: String,
+        context: Context
     ) {
         status = true
         this.pickUpTime = pickUpTime
@@ -30,6 +39,43 @@ class Ride(private val rideId: Int, private val userId: Int, private val driverI
         this.dropOffLocation = dropOffLocation
         this.paymentAmount = paymentAmount
         this.rideType = rideType
+
+        FirebaseDatabase
+            .getInstance()
+            .getReference("ride/$rideId")
+            .runTransaction(object: Transaction.Handler {
+                override fun doTransaction(currentData: MutableData): Transaction.Result {
+                    currentData.value = mapOf(
+                        "passengerId" to userId,
+                        "driverId" to driverId,
+                        "pickUpTime" to pickUpTime,
+                        "pickUpLocation" to pickUpLocation,
+                        "dropOffLocation" to dropOffLocation,
+                        "paymentAmount" to paymentAmount,
+                        "rideType" to rideType,
+                        "status" to status
+                    )
+
+                    return Transaction.success(currentData)
+                }
+
+                override fun onComplete(
+                    error: DatabaseError?,
+                    committed: Boolean,
+                    currentData: DataSnapshot?
+                ) {
+                    if(error != null || !committed)
+                        Toast.makeText(
+                            context,
+                            "Could not start ride. Please try again later!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    else println("Upload data successfully")
+                }
+            })
+
+        // create new payment
+
     }
 
     /**
