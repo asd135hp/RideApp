@@ -1,15 +1,20 @@
 package com.example.mits5002_assignment3.data.model
 
-import com.example.mits5002_assignment3.data.model.common.UserType
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-open abstract class User(
-    protected val userId: Int,
-    protected val userName: String,
-    protected val password: String,
-    protected val userType: UserType,
-    protected val emailAddress: String
+@Entity
+/**
+ * Base user class with all information related to a user
+ */
+data class User(
+    @PrimaryKey val userId: Int,
+    @ColumnInfo val userName: String,
+    @ColumnInfo val password: String,
+    @ColumnInfo val emailAddress: String
 ) {
-    var firstName: String = ""
-    var lastName: String = ""
-    var dob: String = ""
+    @ColumnInfo var firstName: String = ""
+    @ColumnInfo var lastName: String = ""
+    @ColumnInfo var dob: String = ""
 }

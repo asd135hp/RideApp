@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
     id("com.google.gms.google-services")
     kotlin("plugin.serialization") version "1.9.10"
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
@@ -8,12 +9,12 @@ plugins {
 
 android {
     namespace = "com.example.mits5002_assignment3"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.mits5002_assignment3"
         minSdk = 33
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -39,6 +40,14 @@ android {
 }
 
 dependencies {
+    val room_version = "2.5.2"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("androidx.core:core-ktx:1.9.0")
