@@ -1,3 +1,6 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+val key: String = gradleLocalProperties(rootDir).getProperty("MAPS_API_KEY")
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -25,6 +28,11 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField("String", "key", "\"$key\"")
+        }
+
+        debug {
+            buildConfigField("String", "key", "\"$key\"")
         }
     }
     compileOptions {
@@ -36,10 +44,12 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    implementation("com.google.android.libraries.places:places:3.2.0")
     val room_version = "2.5.2"
 
     implementation("androidx.room:room-runtime:$room_version")
@@ -48,6 +58,10 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-places:17.0.0")
+    implementation("com.google.maps.android:android-maps-utils:3.4.0")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.libraries.places:places:3.2.0")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("androidx.core:core-ktx:1.9.0")
@@ -59,12 +73,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
     implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
-    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-database-ktx")
     implementation("androidx.annotation:annotation:1.6.0")
-    implementation("com.google.android.gms:play-services-maps:18.1.0")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("androidx.recyclerview:recyclerview:1.3.0")
 

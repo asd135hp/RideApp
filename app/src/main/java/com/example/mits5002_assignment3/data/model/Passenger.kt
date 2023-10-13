@@ -6,6 +6,8 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.mits5002_assignment3.data.model.dao.GenericDAO
 import com.example.mits5002_assignment3.data.model.dao.UserDAO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 
 @Entity(
@@ -34,9 +36,11 @@ data class Passenger(@PrimaryKey var userId: Int) {
         val driver = Driver(userId).apply {
             vehicleId = vehicle.vehicleId
         }
-        dao.add(vehicle)
-        userDao.delete(this)
-        userDao.addDriver(driver)
+        runBlocking(Dispatchers.IO) {
+            dao.add(vehicle)
+            userDao.delete(this@Passenger)
+            userDao.addDriver(driver)
+        }
         return driver
     }
 

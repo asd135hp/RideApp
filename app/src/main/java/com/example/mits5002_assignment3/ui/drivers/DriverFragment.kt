@@ -8,7 +8,11 @@ import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.example.mits5002_assignment3.R
+import com.example.mits5002_assignment3.data.model.dao.GenericDAO
+import com.example.mits5002_assignment3.data.model.dao.UserDAO
+import com.example.mits5002_assignment3.database.RideDatabase
 import com.example.mits5002_assignment3.ui.drivers.placeholder.PlaceholderContent
 
 /**
@@ -17,6 +21,9 @@ import com.example.mits5002_assignment3.ui.drivers.placeholder.PlaceholderConten
 class DriverFragment : Fragment() {
 
     private var columnCount = 1
+    private lateinit var dbInstance: RideDatabase
+    private lateinit var userDao: UserDAO
+    private lateinit var genericDao: GenericDAO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,6 +31,10 @@ class DriverFragment : Fragment() {
         arguments?.let {
             columnCount = it.getInt(ARG_COLUMN_COUNT)
         }
+
+        dbInstance = RideDatabase.getInstance(requireContext())
+        userDao = dbInstance.userDao
+        genericDao = dbInstance.genericDao
     }
 
     override fun onCreateView(
@@ -39,7 +50,9 @@ class DriverFragment : Fragment() {
                     columnCount <= 1 -> LinearLayoutManager(context)
                     else -> GridLayoutManager(context, columnCount)
                 }
-                adapter = MyDriverRecyclerViewAdapter(PlaceholderContent.ITEMS)
+                adapter = MyDriverRecyclerViewAdapter(userDao, genericDao) {
+                    Toast.makeText(context, "Preparing for your trip...", Toast.LENGTH_LONG).show()
+                }
             }
         }
         return view

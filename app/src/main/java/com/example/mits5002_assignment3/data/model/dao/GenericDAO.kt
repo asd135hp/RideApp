@@ -36,4 +36,7 @@ interface GenericDAO {
     fun update(vehicle: Vehicle)
     @Update
     fun update(ride: Ride)
+
+    @Query("DELETE FROM Vehicle")
+    fun deleteAllVehicles()
 }

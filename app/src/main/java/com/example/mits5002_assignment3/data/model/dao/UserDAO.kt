@@ -54,4 +54,6 @@ interface UserDAO {
 
     @Query("DELETE FROM Driver")
     fun deleteAllDrivers()
+    @Query("DELETE FROM User")
+    fun deleteAllUsers()
 }

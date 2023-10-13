@@ -5,6 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.example.mits5002_assignment3.data.model.dao.UserDAO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 @Entity(
     foreignKeys = [ForeignKey(
@@ -34,11 +36,15 @@ data class Driver(@PrimaryKey var userId: Int) {
     @ColumnInfo(index = true) var vehicleId = 0
     @ColumnInfo var latitude = 0.0
     @ColumnInfo var longitude = 0.0
+    @ColumnInfo var rating = 5.0
+    @ColumnInfo var distance = 0.0
 
     fun switchPassengerMode(dao: UserDAO): Passenger {
         val passenger = Passenger(userId)
-        dao.delete(this)
-        dao.addPassenger(passenger)
+        runBlocking(Dispatchers.IO) {
+            dao.delete(this@Driver)
+            dao.addPassenger(passenger)
+        }
         return passenger
     }
 }
