@@ -27,7 +27,9 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.Polyline
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.android.PolyUtil
 import kotlinx.serialization.decodeFromString
@@ -35,11 +37,16 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
+import org.apache.commons.text.StringEscapeUtils
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.math.log
+import kotlin.math.round
 
 class MapsFragment : Fragment() {
     private val viewModel: MapsViewModel by activityViewModels()
+    private var previousMarker: Marker? = null
+    private var previousPolyline: Polyline? = null
 
     private val callback = OnMapReadyCallback { googleMap ->
         /**
@@ -58,7 +65,7 @@ class MapsFragment : Fragment() {
         googleMap.apply {
             addMarker(MarkerOptions().position(geoLocation).title("Your location"))
             moveCamera(CameraUpdateFactory.newLatLngZoom(geoLocation, 15.0f))
-            setMinZoomPreference(7.0f)
+            setMinZoomPreference(1.0f)
             setMaxZoomPreference(18.0f)
         }
     }
@@ -102,14 +109,15 @@ class MapsFragment : Fragment() {
                         val decodedPoints = try {
                             PolyUtil.decode(result.encodedPoints)
                         } catch(e: Exception) {
+                            Log.i("abc", e.message ?: "")
                             PolyUtil.decode("${result.encodedPoints}@")
                         }
 
                         val options = PolylineOptions().apply {
                             // draw on map with all decoded waypoints
                             // on thickness of 3 and color blue lines
-                            width(3.0f)
-                            color(Color.BLUE)
+                            width(5.0f)
+                            color(Color.BLACK)
                             addAll(decodedPoints)
                             Log.i("abc", decodedPoints.toString())
                         }
@@ -117,9 +125,13 @@ class MapsFragment : Fragment() {
                         // add all polylines from our created options
                         mapFragment?.getMapAsync { map ->
                             map.apply {
+                                // remove previous marker and polyline
+                                previousMarker?.remove()
+                                previousPolyline?.remove()
+
                                 // add another marker with a title of destination name and
                                 // distance and time
-                                addMarker(
+                                previousMarker = addMarker(
                                     MarkerOptions()
                                         .position(location.toLatLng())
                                         .title("Destination")
@@ -127,12 +139,12 @@ class MapsFragment : Fragment() {
                                 )
 
                                 // add all polylines to draw to the map
-                                addPolyline(options)
+                                previousPolyline = addPolyline(options)
 
                                 // move camera to the route we just draw
                                 moveCamera(CameraUpdateFactory.newLatLngZoom(
                                     viewModel.origin.value?.toLatLng() ?: LatLng(0.0, 0.0),
-                                    11.0f))
+                                    result.zoomLevel))
 
                                 // now show available drivers to the user
                                 showDriversList()
@@ -188,24 +200,47 @@ class MapsFragment : Fragment() {
                         address = get("end_address")?.toString() ?: ""
                     }
 
-                encodedPoints = get("overview_polyline")?.jsonObject?.get("points")?.toString() ?: ""
+                // just json things where double escape becomes quadruple escape (for transferring data)
+                // and getting string from the jsonObject adds a double quote at both ends
+                // which are not needed
+                encodedPoints = (get("overview_polyline")?.jsonObject?.get("points")?.toString() ?: "")
+
             }
 
         return object : DirectionResults {
             override val distance: String
-                get() = distance
+                get() = distance.replace("\"", "")
             override val time: String
-                get() = time
+                get() = time.replace("\"", "")
             override val encodedPoints: String
                 get() = encodedPoints
+                    .replace("\\\\", "\\")
+                    .replace("\"", "")
+                    .also {
+                        // found bugs from this line
+                        Log.i("abc", StringEscapeUtils.escapeJson(encodedPoints))
+                    }
             override val address: String
-                get() = address
+                get() = address.replace("\"", "")
+            override val zoomLevel: Float
+                get() {
+                    // get numeric distance that is inversely proportional to the level of zoom
+                    // in google maps (base ratio: level 13 zoom for 4.0km distance
+                    val adjustedLevel = log(
+                        distance.replace("\"", "").split(" ")[0].toDouble(),
+                        4.0
+                    ).toFloat() - 1
+
+                    Log.i("abc", adjustedLevel.toString())
+                    return 13.0f - round(adjustedLevel)
+                }
         }
     }
 
     interface DirectionResults {
         val address: String
         val distance: String
+        val zoomLevel: Float
         val time: String
         val encodedPoints: String
     }

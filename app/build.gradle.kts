@@ -49,7 +49,6 @@ android {
 }
 
 dependencies {
-    implementation("com.google.android.libraries.places:places:3.2.0")
     val room_version = "2.5.2"
 
     implementation("androidx.room:room-runtime:$room_version")
@@ -57,6 +56,8 @@ dependencies {
     kapt("androidx.room:room-compiler:$room_version")
     annotationProcessor("androidx.room:room-compiler:$room_version")
 
+    implementation("org.apache.commons:commons-text:1.9")
+    implementation("com.google.android.libraries.places:places:3.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.gms:play-services-places:17.0.0")
     implementation("com.google.maps.android:android-maps-utils:3.4.0")
